@@ -2,7 +2,7 @@ package exchange
 
 import (
 	"fmt"
-	"hitbtc"
+	"github.com/oiovoyo/hitbtc"
 	"strings"
 	"time"
 	"log"
