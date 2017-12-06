@@ -240,12 +240,17 @@ func (b *Binance) Withdraw(currency string, amount float64, address, paymentID s
     }
 
 
-    err = b.NewCreateWithdrawService().
+    var withdrawService = b.NewCreateWithdrawService().
         Asset(currency).
         Name("bc").
         Address(address).
-        Amount(amountStr).
-        Do(context.Background())
+        Amount(amountStr)
+
+    if paymentID != "" {
+        withdrawService.AddressTag(paymentID)
+    }
+    err = withdrawService.Do(context.Background())
+
 
     if err != nil {
         return "", fmt.Errorf("Binance.Withdraw(\"%s\",%.8f,\"%s\",\"%s\") error %v",
