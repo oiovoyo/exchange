@@ -2,7 +2,7 @@ package exchange
 
 import (
     "fmt"
-    "github.com/toorop/go-bittrex"
+    "github.com/oiovoyo/go-bittrex"
     "strconv"
     "strings"
     "time"
