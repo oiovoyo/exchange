@@ -2,8 +2,8 @@ package exchange
 
 import (
 	"fmt"
-	"github.com/qct/crypto_coin_api"
-	"github.com/qct/crypto_coin_api/poloniex"
+	"github.com/oiovoyo/crypto_coin_api"
+	"github.com/oiovoyo/crypto_coin_api/poloniex"
 	"net/http"
 	"strconv"
 	"strings"
