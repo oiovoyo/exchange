@@ -1,7 +1,7 @@
 package exchange
 
 import (
-	"github.com/toorop/go-bittrex"
+	"github.com/oiovoyo/go-bittrex"
 	"time"
 )
 
