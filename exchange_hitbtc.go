@@ -195,8 +195,9 @@ func (h *Hitbtc) GetPaymentBalance(currency string) (float64, error) {
 	}
 	return 0.0, nil
 }
-func (h *Hitbtc) GetDepositAddress(currency string) (string, error) {
-	return h.Hitbtc.GetDepositAddress(currency)
+func (h *Hitbtc) GetDepositAddress(currency string) (string, string, error) {
+	a,err :=  h.Hitbtc.GetDepositAddress(currency)
+	return a, "", err
 }
 
 func (h *Hitbtc) TransferToPayment(currency string, amount float64) error {

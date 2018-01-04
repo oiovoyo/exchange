@@ -10,48 +10,50 @@ import (
     "time"
     "strconv"
     "net/http"
-    "errors"
 )
 
 var (
     ProductMap map[string]binance.Product
 )
 
-func init(){
-    p,err := binance.NewClient("","").NewListProductService().Do(context.Background())
+func init() {
+    p, err := binance.NewClient("", "").NewListProductService().Do(context.Background())
 
     if err != nil {
-        fmt.Print("exchange_binance init error")
+        fmt.Printf("exchange_binance init error %v", err)
         os.Exit(1)
     }
 
     ProductMap = make(map[string]binance.Product)
 
-    for _,v := range p.Data {
+    for _, v := range p.Data {
         ProductMap[v.Symbol] = v
     }
 }
+
 type PriceTrunc int
+
 const (
-    PRICE_UP  = PriceTrunc(iota)
+    PRICE_UP   = PriceTrunc(iota)
     PRICE_DOWN
 )
+
 func TruncatePrice(pair string, price float64, priceTrunc PriceTrunc) (string) {
     tickSize := ProductMap[pair].TickSize
     var retPrice float64
     if price < tickSize {
         retPrice = tickSize
     } else {
-        count := int64(price/tickSize)
+        count := int64(price / tickSize)
 
-        if float64(count)*tickSize == price{
+        if float64(count)*tickSize == price {
             retPrice = price
         } else {
-            switch priceTrunc{
+            switch priceTrunc {
             case PRICE_UP:
-                retPrice = float64(count+1)*tickSize
+                retPrice = float64(count+1) * tickSize
             case PRICE_DOWN:
-                retPrice = float64(count)*tickSize
+                retPrice = float64(count) * tickSize
             }
         }
 
@@ -61,7 +63,7 @@ func TruncatePrice(pair string, price float64, priceTrunc PriceTrunc) (string) {
         fmtCount++
         tickSize *= 10.0
     }
-    fmtStr := fmt.Sprintf("%%.%df",fmtCount)
+    fmtStr := fmt.Sprintf("%%.%df", fmtCount)
     return fmt.Sprintf(fmtStr, retPrice)
 }
 func TruncateAmount(pair string, amount float64) (string) {
@@ -71,15 +73,15 @@ func TruncateAmount(pair string, amount float64) (string) {
     if amount < minAmount {
         retAmount = 0.0
     } else {
-        count := int64(amount/minAmount)
-        retAmount = float64(count)*minAmount
+        count := int64(amount / minAmount)
+        retAmount = float64(count) * minAmount
     }
     fmtCount := 0
     for minAmount < 1.0 {
         fmtCount++
         minAmount *= 10.0
     }
-    fmtStr := fmt.Sprintf("%%.%df",fmtCount)
+    fmtStr := fmt.Sprintf("%%.%df", fmtCount)
     return fmt.Sprintf(fmtStr, retAmount)
 
 }
@@ -88,15 +90,14 @@ type Binance struct {
     *binance.Client
 }
 
-
 func NewBinance(access, secret string) *Binance {
     return &Binance{
-        binance.NewClient(access,secret),
+        binance.NewClient(access, secret),
     }
 }
-func NewCustomBinance(access, secret string,client *http.Client) *Binance {
+func NewCustomBinance(access, secret string, client *http.Client) *Binance {
     return &Binance{
-        binance.NewClientCustomHttp(access,secret,client),
+        binance.NewClientCustomHttp(access, secret, client),
     }
 }
 func (b *Binance) MakeLocalPair(pair string) string {
@@ -112,21 +113,21 @@ func (b *Binance) MakeLocalPair(pair string) string {
 func (b *Binance) tradeOneTime(tradeType, pair string, amount, price float64) (dealAmount float64, err error) {
     pair = b.MakeLocalPair(pair)
 
-    amountStr := TruncateAmount(pair,amount)
+    amountStr := TruncateAmount(pair, amount)
 
     var order *binance.CreateOrderResponse
     switch tradeType {
     case "buy":
-        priceStr := TruncatePrice(pair,price,PRICE_UP)
-        fmt.Printf("amount %s price %s\n", amountStr,priceStr)
+        priceStr := TruncatePrice(pair, price, PRICE_UP)
+        fmt.Printf("amount %s price %s\n", amountStr, priceStr)
         order, err = b.NewCreateOrderService().Symbol(pair).
-                Price(priceStr).
-                Quantity(amountStr).
-                Side(binance.SideTypeBuy).
-                Type(binance.OrderTypeLimit).
-                TimeInForce(binance.TimeInForceGTC).Do(context.Background())
+            Price(priceStr).
+            Quantity(amountStr).
+            Side(binance.SideTypeBuy).
+            Type(binance.OrderTypeLimit).
+            TimeInForce(binance.TimeInForceGTC).Do(context.Background())
     case "sell":
-        priceStr := TruncatePrice(pair,price,PRICE_DOWN)
+        priceStr := TruncatePrice(pair, price, PRICE_DOWN)
         order, err = b.NewCreateOrderService().Symbol(pair).
             Price(priceStr).
             Quantity(amountStr).
@@ -146,19 +147,19 @@ func (b *Binance) tradeOneTime(tradeType, pair string, amount, price float64) (d
             time.Sleep(time.Millisecond * time.Duration(100))
             continue
         }
-        for _,o := range orders {
+        for _, o := range orders {
             b.NewCancelOrderService().Symbol(pair).OrigClientOrderID(o.ClientOrderID).Do(context.Background())
         }
         break;
     }
 
     if err != nil {
-        log.Printf("%s error %v", tradeType,err)
+        log.Printf("%s error %v", tradeType, err)
         return 0.0, fmt.Errorf("Binance.tradeOneTime(\"%s\",\"%s\",%.8f,%.8f) error %v",
             tradeType, pair, amount, price, err)
     }
 
-    var getOrder * binance.Order
+    var getOrder *binance.Order
     for i := 0; i < 10; i++ {
         getOrder, err = b.NewGetOrderService().
             Symbol(pair).
@@ -193,7 +194,7 @@ func (b *Binance) CancelOpenOrders(pair string) error {
     if err != nil {
         return err
     }
-    for _,o := range orders {
+    for _, o := range orders {
         b.NewCancelOrderService().Symbol(pair).OrigClientOrderID(o.ClientOrderID).Do(context.Background())
     }
     return nil
@@ -202,43 +203,41 @@ func (b *Binance) CancelOpenOrders(pair string) error {
 func (b *Binance) GetOrderBook(pairString string, depthSize int) (*OrderBook, error) {
     pairString = b.MakeLocalPair(pairString)
     orderBookBinance, err := b.NewDepthService().
-            Symbol(pairString).
-            Limit(depthSize).
-            Do(context.Background())
+        Symbol(pairString).
+        Limit(depthSize).
+        Do(context.Background())
     if err != nil {
         return nil, fmt.Errorf("Binance.GetOrderBook(\"%s\",%d) error %v", pairString, depthSize, err)
     }
     var orderBook OrderBook
-    orderBook.Sell = make([]Orderb,0)
-    orderBook.Buy = make([]Orderb,0)
+    orderBook.Sell = make([]Orderb, 0)
+    orderBook.Buy = make([]Orderb, 0)
 
-    for _,v := range orderBookBinance.Asks {
-        q,_ := strconv.ParseFloat(v.Quantity,64)
-        r,_ := strconv.ParseFloat(v.Price,64)
-        order := Orderb{Quantity:q,Rate:r}
+    for _, v := range orderBookBinance.Asks {
+        q, _ := strconv.ParseFloat(v.Quantity, 64)
+        r, _ := strconv.ParseFloat(v.Price, 64)
+        order := Orderb{Quantity: q, Rate: r}
         orderBook.Sell = append(orderBook.Sell, order)
     }
-    for _,v := range orderBookBinance.Bids {
-        q,_ := strconv.ParseFloat(v.Quantity,64)
-        r,_ := strconv.ParseFloat(v.Price,64)
-        order := Orderb{Quantity:q,Rate:r}
+    for _, v := range orderBookBinance.Bids {
+        q, _ := strconv.ParseFloat(v.Quantity, 64)
+        r, _ := strconv.ParseFloat(v.Price, 64)
+        order := Orderb{Quantity: q, Rate: r}
         orderBook.Buy = append(orderBook.Buy, order)
     }
     return &orderBook, err
 
 }
 
-
 func (b *Binance) Withdraw(currency string, amount float64, address, paymentID string) (withrawID string, err error) {
 
     amountStr := ""
     if currency == "BTC" {
-        amountStr = fmt.Sprintf("%.8f",amount)
+        amountStr = fmt.Sprintf("%.8f", amount)
     } else {
-        pair := b.MakeLocalPair(currency+"_BTC")
-        amountStr = TruncateAmount(pair,amount)
+        pair := b.MakeLocalPair(currency + "_BTC")
+        amountStr = TruncateAmount(pair, amount)
     }
-
 
     var withdrawService = b.NewCreateWithdrawService().
         Asset(currency).
@@ -251,15 +250,14 @@ func (b *Binance) Withdraw(currency string, amount float64, address, paymentID s
     }
     err = withdrawService.Do(context.Background())
 
-
     if err != nil {
         return "", fmt.Errorf("Binance.Withdraw(\"%s\",%.8f,\"%s\",\"%s\") error %v",
             currency, amount, address, paymentID, err)
     }
 
-    withdrawList,err := b.NewListWithdrawsService().
+    withdrawList, err := b.NewListWithdrawsService().
         Asset(currency).
-        StartTime(time.Now().Add(-2*time.Minute).UTC().UnixNano() / int64(time.Millisecond)).
+        StartTime(time.Now().Add(-2 * time.Minute).UTC().UnixNano() / int64(time.Millisecond)).
         Do(context.Background())
     if err != nil {
         return "", fmt.Errorf("Binance.Withdraw(\"%s\",%.8f,\"%s\",\"%s\") error %v",
@@ -270,22 +268,21 @@ func (b *Binance) Withdraw(currency string, amount float64, address, paymentID s
         return "", fmt.Errorf("Binance.Withdraw(\"%s\",%.8f,\"%s\",\"%s\") error withdraw len is 0",
             currency, amount, address, paymentID)
     }
-    for _,v := range withdrawList {
-        return v.Address+fmt.Sprintf("_%v",v.ApplyTime),nil
+    for _, v := range withdrawList {
+        return v.Address + fmt.Sprintf("_%v", v.ApplyTime), nil
     }
     return "", nil
 }
 
-
 func (b *Binance) GetWithdrawStatus(withdrawID string) (WithdrawStatus, error) {
     w, err := b.NewListWithdrawsService().
-    StartTime(time.Now().AddDate(0, 0, -10).UTC().UnixNano() / int64(time.Millisecond)).
-    Do(context.Background())
+        StartTime(time.Now().AddDate(0, 0, -10).UTC().UnixNano() / int64(time.Millisecond)).
+        Do(context.Background())
     if err != nil {
         return WITHDRAW_ERROR, fmt.Errorf("Binance.GetWithdrawStatus(\"%s\") error %v", withdrawID, err)
     }
     for _, o := range w {
-        id := o.Address+fmt.Sprintf("_%v",o.ApplyTime)
+        id := o.Address + fmt.Sprintf("_%v", o.ApplyTime)
         //fmt.Printf("%+v\n",o)
         if id == withdrawID {
             if o.TxID != "" || o.Status == 6 {
@@ -300,8 +297,8 @@ func (b *Binance) GetWithdrawStatus(withdrawID string) (WithdrawStatus, error) {
 
 func (b *Binance) GetDepositList(coin string, utcTime time.Time) ([]DepositItem, error) {
     d, err := b.NewListDepositsService().Asset(coin).
-    StartTime(utcTime.UnixNano()/ int64(time.Millisecond)).
-    Do(context.Background())
+        StartTime(utcTime.UnixNano() / int64(time.Millisecond)).
+        Do(context.Background())
     if err != nil {
         return nil, fmt.Errorf("Binance.GetDepositList(\"%s\",%d) error %v", coin, utcTime, err)
     }
@@ -313,14 +310,14 @@ func (b *Binance) GetDepositList(coin string, utcTime time.Time) ([]DepositItem,
             if o.Status == 1 {
                 depositStatus = DEPOSIT_COMPLETE
             }
-            if o.InsertTime >= utcTime.UnixNano()/ int64(time.Millisecond) {
+            if o.InsertTime >= utcTime.UnixNano()/int64(time.Millisecond) {
                 d := DepositItem{coin: o.Asset,
                     address: "",
-                    amount:  o.Amount,
-                    txid:    "",
-                    id:      "0",
-                    time:    time.Unix( utcTime.UnixNano()/ int64(time.Millisecond) , 0),
-                    Status:  depositStatus, // Binance can only query complete deposit
+                    amount: o.Amount,
+                    txid: "",
+                    id: "0",
+                    time: time.Unix(utcTime.UnixNano()/int64(time.Millisecond), 0),
+                    Status: depositStatus, // Binance can only query complete deposit
                 }
                 ret = append(ret, d)
             }
@@ -335,9 +332,9 @@ func (b *Binance) CheckWalletValid(coin string) (bool, error) {
         return false, fmt.Errorf("Binance.CheckWalletValid(\"%s\") error %v", coin, err)
     }
     if c.CanDeposit && c.CanWithdraw {
-        return true,nil
+        return true, nil
     }
-    return false, fmt.Errorf("Binance.CheckWalletValid(\"%s\") error invalid", coin,)
+    return false, fmt.Errorf("Binance.CheckWalletValid(\"%s\") error invalid", coin, )
 }
 
 func (b *Binance) GetTradingBalance(currency string) (float64, error) {
@@ -345,16 +342,16 @@ func (b *Binance) GetTradingBalance(currency string) (float64, error) {
     if err != nil {
         return 0.0, fmt.Errorf("Binance.GetBalance(\"%s\") error %v", currency, err)
     }
-    for _,v := range c.Balances {
-        if v.Asset == currency{
-            f,_ := strconv.ParseFloat(v.Free,64)
+    for _, v := range c.Balances {
+        if v.Asset == currency {
+            f, _ := strconv.ParseFloat(v.Free, 64)
             if currency != "BTC" {
-                pair := b.MakeLocalPair(currency+"_BTC")
-                amountStr := TruncateAmount(pair,f)
-                f,_ = strconv.ParseFloat(amountStr,64)
+                pair := b.MakeLocalPair(currency + "_BTC")
+                amountStr := TruncateAmount(pair, f)
+                f, _ = strconv.ParseFloat(amountStr, 64)
             }
 
-            return f,nil
+            return f, nil
         }
     }
     return 0.0, nil
@@ -369,6 +366,11 @@ func (b *Binance) TransferToTrading(currency string, amount float64) error {
     return nil
 }
 
-func (b *Binance) GetDepositAddress(currency string) (string, error) {
-    return "",errors.New("binance not supported")
+func (b *Binance) GetDepositAddress(currency string) (string, string, error) {
+    c, err := b.NewDepositAddressService().Asset(currency).Do(context.Background())
+    if err != nil {
+        return "", "", fmt.Errorf("Binance.GetBalance(\"%s\") error %v", currency, err)
+    }
+    return c.Address, c.AddressTag, nil
+    //return "",errors.New("binance not supported")
 }

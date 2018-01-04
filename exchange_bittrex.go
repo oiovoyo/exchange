@@ -203,10 +203,10 @@ func (b *Bittrex) TransferToPayment(currency string, amount float64) error {
 func (b *Bittrex) TransferToTrading(currency string, amount float64) error {
     return nil
 }
-func (b *Bittrex) GetDepositAddress(currency string) (string, error) {
+func (b *Bittrex) GetDepositAddress(currency string) (string,string, error) {
     a, err := b.Bittrex.GetDepositAddress(currency)
     if err != nil {
-        return "", fmt.Errorf("Bittrex.GetDepositAddress(\"%s\") error not found", currency)
+        return "","", fmt.Errorf("Bittrex.GetDepositAddress(\"%s\") error not found", currency)
     }
-    return a.Address, nil
+    return a.Address, "",nil
 }
