@@ -248,30 +248,14 @@ func (b *Binance) Withdraw(currency string, amount float64, address, paymentID s
     if paymentID != "" {
         withdrawService.AddressTag(paymentID)
     }
-    err = withdrawService.Do(context.Background())
+    id, err := withdrawService.Do(context.Background())
 
     if err != nil {
         return "", fmt.Errorf("Binance.Withdraw(\"%s\",%.8f,\"%s\",\"%s\") error %v",
             currency, amount, address, paymentID, err)
     }
 
-    withdrawList, err := b.NewListWithdrawsService().
-        Asset(currency).
-        StartTime(time.Now().Add(-2 * time.Minute).UTC().UnixNano() / int64(time.Millisecond)).
-        Do(context.Background())
-    if err != nil {
-        return "", fmt.Errorf("Binance.Withdraw(\"%s\",%.8f,\"%s\",\"%s\") error %v",
-            currency, amount, address, paymentID, err)
-    }
-
-    if len(withdrawList) < 1 {
-        return "", fmt.Errorf("Binance.Withdraw(\"%s\",%.8f,\"%s\",\"%s\") error withdraw len is 0",
-            currency, amount, address, paymentID)
-    }
-    for _, v := range withdrawList {
-        return v.Address + fmt.Sprintf("_%v", v.ApplyTime), nil
-    }
-    return "", nil
+    return id, nil
 }
 
 func (b *Binance) GetWithdrawStatus(withdrawID string) (WithdrawStatus, error) {
@@ -284,7 +268,13 @@ func (b *Binance) GetWithdrawStatus(withdrawID string) (WithdrawStatus, error) {
     for _, o := range w {
         id := o.Address + fmt.Sprintf("_%v", o.ApplyTime)
         //fmt.Printf("%+v\n",o)
-        if id == withdrawID {
+        if o.Id == withdrawID {
+            if o.TxID != "" || o.Status == 6 {
+                return WITHDRAW_COMPLETE, nil
+            } else {
+                return WITHDRAW_PENDING, nil
+            }
+        } else if id == withdrawID {
             if o.TxID != "" || o.Status == 6 {
                 return WITHDRAW_COMPLETE, nil
             } else {
