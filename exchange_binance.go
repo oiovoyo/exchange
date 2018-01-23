@@ -325,6 +325,8 @@ func (b *Binance) GetDepositList(coin string, utcTime time.Time) ([]DepositItem,
 }
 
 func (b *Binance) CheckWalletValid(coin string) (bool, error) {
+	// avoid ban
+	return true, nil
     c, err := b.NewGetAccountService().Do(context.Background())
     if err != nil {
         return false, fmt.Errorf("Binance.CheckWalletValid(\"%s\") error %v", coin, err)
