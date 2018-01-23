@@ -232,13 +232,13 @@ func (p *Poloniex) TransferToPayment(currency string, amount float64) error {
 func (p *Poloniex) TransferToTrading(currency string, amount float64) error {
 	return nil
 }
-func (p *Poloniex) GetDepositAddress(currency string) (string, error) {
+func (p *Poloniex) GetDepositAddress(currency string) (string, string, error) {
 	a, err := p.Poloniex.GetDepositAdresses()
 	if err != nil {
-		return "", fmt.Errorf("Poloniex.GetDepositAddress(\"%s\") error %v", currency, err)
+		return "","", fmt.Errorf("Poloniex.GetDepositAddress(\"%s\") error %v", currency, err)
 	}
 	if v, ok := a[currency]; ok {
-		return v, nil
+		return v, "",nil
 	}
-	return "", fmt.Errorf("Poloniex.GetDepositAddress(\"%s\") error not found", currency)
+	return "", "", fmt.Errorf("Poloniex.GetDepositAddress(\"%s\") error not found", currency)
 }

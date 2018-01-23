@@ -46,5 +46,5 @@ type IExchange interface {
 	GetTradingBalance(currency string) (float64, error)
 	TransferToPayment(currency string, amount float64) error
 	TransferToTrading(currency string, amount float64) error
-	GetDepositAddress(currency string) (string, error)
+	GetDepositAddress(currency string) (address,asset string, err error)
 }
