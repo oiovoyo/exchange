@@ -69,20 +69,21 @@ func binanceGetMinTrade(pair string) (float64, error) {
 	return t_m.(tickSizeMinTrade).MinTrade, nil
 }
 func init() {
-	p, err := binance.NewClient("", "").NewListProductService().Do(context.Background())
+	/*
+		p, err := binance.NewClient("", "").NewListProductService().Do(context.Background())
 
-	if err != nil {
-		fmt.Printf("exchange_binance init error %v", err)
-		os.Exit(1)
-	}
+		if err != nil {
+			fmt.Printf("exchange_binance init error %v", err)
+			os.Exit(1)
+		}
 
-	ProductMap = make(map[string]binance.Product)
+		ProductMap = make(map[string]binance.Product)
 
-	for _, v := range p.Data {
-		ProductMap[v.Symbol] = v
-	}
-
-	err = BinanceUpdateExchangeInfo()
+		for _, v := range p.Data {
+			ProductMap[v.Symbol] = v
+		}
+	*/
+	err := BinanceUpdateExchangeInfo()
 	if err != nil {
 		fmt.Printf("exchange_binance init error %v", err)
 		os.Exit(1)
