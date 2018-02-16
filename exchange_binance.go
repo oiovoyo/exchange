@@ -13,9 +13,11 @@ import (
 	"time"
 )
 
-type tickSizeMinTrade struct {
+type TickSizeMinTrade struct {
 	TickSize float64
 	MinTrade float64
+	BaseAsset string
+	QuoteAsset string
 }
 
 var (
@@ -48,7 +50,14 @@ func BinanceUpdateExchangeInfo() error {
 		if ex_tick_size == 0.0 {
 			return fmt.Errorf("%s tick size not found", ex.Symbol)
 		}
-		BinanceExchangeInfo.Store(ex.Symbol, tickSizeMinTrade{TickSize: ex_tick_size, MinTrade: ex_min_trade})
+		BinanceExchangeInfo.Store(ex.Symbol,
+			TickSizeMinTrade{
+				TickSize: ex_tick_size,
+				MinTrade: ex_min_trade,
+				BaseAsset:ex.BaseAsset,
+				QuoteAsset:ex.QuoteAsset,
+			},
+			)
 	}
 	return nil
 }
@@ -58,7 +67,7 @@ func binanceGetTickSize(pair string) (float64, error) {
 		return 0.0, fmt.Errorf("binanceGetTickSize(\"%s\") load false\n", pair)
 	}
 
-	return t_m.(tickSizeMinTrade).TickSize, nil
+	return t_m.(TickSizeMinTrade).TickSize, nil
 }
 func binanceGetMinTrade(pair string) (float64, error) {
 	t_m, ok := BinanceExchangeInfo.Load(pair)
@@ -66,7 +75,7 @@ func binanceGetMinTrade(pair string) (float64, error) {
 		return 0.0, fmt.Errorf("binanceGetMinTrade(\"%s\") load false \n", pair)
 	}
 
-	return t_m.(tickSizeMinTrade).MinTrade, nil
+	return t_m.(TickSizeMinTrade).MinTrade, nil
 }
 func init() {
 	/*
