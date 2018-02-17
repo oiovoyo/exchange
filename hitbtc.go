@@ -3,9 +3,9 @@ package exchange
 import (
 	"fmt"
 	"github.com/oiovoyo/hitbtc"
+	"log"
 	"strings"
 	"time"
-	"log"
 )
 
 type Hitbtc struct {
@@ -18,6 +18,9 @@ func NewHitbtc(access, secret string) *Hitbtc {
 	}
 }
 
+func (h *Hitbtc) Markets() ([]Market, error) {
+	return nil, fmt.Errorf("hitbtc not impl this")
+}
 func (h *Hitbtc) MakeLocalPair(pair string) string {
 
 	s := strings.Split(pair, "_")
@@ -196,7 +199,7 @@ func (h *Hitbtc) GetPaymentBalance(currency string) (float64, error) {
 	return 0.0, nil
 }
 func (h *Hitbtc) GetDepositAddress(currency string) (string, string, error) {
-	a,err :=  h.Hitbtc.GetDepositAddress(currency)
+	a, err := h.Hitbtc.GetDepositAddress(currency)
 	return a, "", err
 }
 

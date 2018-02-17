@@ -8,6 +8,12 @@ import (
 	"time"
 )
 
+func TestBinanceMarkets(t *testing.T) {
+	m, e := NewBinance("", "").Markets()
+	t.Log(e)
+	t.Log(m)
+
+}
 func TestBinanceUpdateExchangeInfo(t *testing.T) {
 	err := BinanceUpdateExchangeInfo()
 	t.Log(err)

@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/oiovoyo/crypto_coin_api"
 	"github.com/oiovoyo/crypto_coin_api/poloniex"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"log"
 )
 
 type Poloniex struct {
@@ -25,6 +25,18 @@ func (p *Poloniex) MakeLocalPair(pair string) string {
 	return pair
 }
 
+func (p *Poloniex) Markets() ([]Market, error) {
+	market, err := p.Poloniex.GetTickers()
+	if err != nil {
+		return nil, err
+	}
+	m := make([]Market, 0)
+	for k, _ := range market {
+		bq := strings.Split(k, "_")
+		m = append(m, Market{Base: bq[0], Quot: bq[1]})
+	}
+	return m, nil
+}
 func (p *Poloniex) tradeOneTime(tradeType, pair string, amount, price float64) (dealAmount float64, err error) {
 	pair = p.MakeLocalPair(pair)
 	currPair := coinapi.CurrencyPairMap[pair]
@@ -235,10 +247,10 @@ func (p *Poloniex) TransferToTrading(currency string, amount float64) error {
 func (p *Poloniex) GetDepositAddress(currency string) (string, string, error) {
 	a, err := p.Poloniex.GetDepositAdresses()
 	if err != nil {
-		return "","", fmt.Errorf("Poloniex.GetDepositAddress(\"%s\") error %v", currency, err)
+		return "", "", fmt.Errorf("Poloniex.GetDepositAddress(\"%s\") error %v", currency, err)
 	}
 	if v, ok := a[currency]; ok {
-		return v, "",nil
+		return v, "", nil
 	}
 	return "", "", fmt.Errorf("Poloniex.GetDepositAddress(\"%s\") error not found", currency)
 }

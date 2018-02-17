@@ -14,9 +14,9 @@ import (
 )
 
 type TickSizeMinTrade struct {
-	TickSize float64
-	MinTrade float64
-	BaseAsset string
+	TickSize   float64
+	MinTrade   float64
+	BaseAsset  string
 	QuoteAsset string
 }
 
@@ -52,12 +52,12 @@ func BinanceUpdateExchangeInfo() error {
 		}
 		BinanceExchangeInfo.Store(ex.Symbol,
 			TickSizeMinTrade{
-				TickSize: ex_tick_size,
-				MinTrade: ex_min_trade,
-				BaseAsset:ex.BaseAsset,
-				QuoteAsset:ex.QuoteAsset,
+				TickSize:   ex_tick_size,
+				MinTrade:   ex_min_trade,
+				BaseAsset:  ex.BaseAsset,
+				QuoteAsset: ex.QuoteAsset,
 			},
-			)
+		)
 	}
 	return nil
 }
@@ -176,6 +176,15 @@ func NewCustomBinance(access, secret string, client *http.Client) *Binance {
 	return &Binance{
 		binance.NewClientCustomHttp(access, secret, client),
 	}
+}
+func (b *Binance) Markets() ([]Market, error) {
+	m := make([]Market, 0)
+	BinanceExchangeInfo.Range(func(key, value interface{}) bool {
+		v := value.(TickSizeMinTrade)
+		m = append(m, Market{Base: v.BaseAsset, Quot: v.QuoteAsset})
+		return true
+	})
+	return m, nil
 }
 func (b *Binance) MakeLocalPair(pair string) string {
 

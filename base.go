@@ -30,7 +30,10 @@ const (
 
 type Orderb = bittrex.Orderb
 type OrderBook = bittrex.OrderBook
-
+type Market struct {
+	Base string
+	Quot string
+}
 type IExchange interface {
 	/*pair format is countercoin_basecoin example XMR_BTC same as followed api*/
 	BuyOneTime(pair string, buyAmount, price float64) (dealAmount float64, err error)
@@ -46,5 +49,6 @@ type IExchange interface {
 	GetTradingBalance(currency string) (float64, error)
 	TransferToPayment(currency string, amount float64) error
 	TransferToTrading(currency string, amount float64) error
-	GetDepositAddress(currency string) (address,asset string, err error)
+	GetDepositAddress(currency string) (address, asset string, err error)
+	Markets() ([]Market, error)
 }
