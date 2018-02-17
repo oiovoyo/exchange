@@ -181,7 +181,7 @@ func (b *Binance) Markets() ([]Market, error) {
 	m := make([]Market, 0)
 	BinanceExchangeInfo.Range(func(key, value interface{}) bool {
 		v := value.(TickSizeMinTrade)
-		m = append(m, Market{Base: v.BaseAsset, Quot: v.QuoteAsset})
+		m = append(m, Market{Quot: v.BaseAsset, Base: v.QuoteAsset})
 		return true
 	})
 	return m, nil
