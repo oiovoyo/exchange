@@ -70,7 +70,7 @@ func (e *Exx) Markets() ([]Market, error) {
 }
 func (e *Exx) ExxUpdateExchangeInfo() error {
 	url := fmt.Sprintf("https://api.exx.com/data/v1/markets")
-	fmt.Println(url)
+	//fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return err // handle error
@@ -85,7 +85,7 @@ func (e *Exx) ExxUpdateExchangeInfo() error {
 	if err != nil {
 		return err
 	}
-	fmt.Println(exxInfo)
+	//fmt.Println(exxInfo)
 	for k, v := range exxInfo {
 		pair := strings.Split(k, "_")
 		base := strings.ToUpper(pair[1])
@@ -125,14 +125,14 @@ func (e *Exx) CancelOpenOrders(pair string) error {
 func (e *Exx) GetOrderBook(pairString string, depthSize int) (*OrderBook, error) {
 	pairString = e.MakeLocalPair(pairString)
 	url := fmt.Sprintf("https://api.exx.com/data/v1/depth?currency=%s", pairString)
-	fmt.Println(url)
+	//fmt.Println(url)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, err // handle error
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
+	//fmt.Println(string(body))
 	depth_ := struct {
 		Timestamp int64      `json:"timestamp"`
 		Asks      [][]string `json:"asks"`
@@ -145,7 +145,7 @@ func (e *Exx) GetOrderBook(pairString string, depthSize int) (*OrderBook, error)
 	if err != nil {
 		return nil, err // handle error
 	}
-	fmt.Println(depth_)
+	//fmt.Println(depth_)
 	orderBook := OrderBook{Buy: make([]Orderb, 0), Sell: make([]Orderb, 0)}
 	for _, buy := range depth_.Bids {
 		rate, _ := strconv.ParseFloat(buy[0], 64)

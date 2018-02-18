@@ -379,7 +379,7 @@ func (b *Binance) GetDepositList(coin string, utcTime time.Time) ([]DepositItem,
 		return nil, fmt.Errorf("Binance.GetDepositList(\"%s\",%d) error %v", coin, utcTime, err)
 	}
 	ret := make([]DepositItem, 0)
-	fmt.Println(d)
+	//fmt.Println(d)
 	for _, o := range d {
 		if o.Asset == coin {
 			depositStatus := DEPOSIT_PENDING
