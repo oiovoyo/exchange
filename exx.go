@@ -103,7 +103,7 @@ func (e *Exx) MakeLocalPair(pair string) string {
 	if len(s) != 2 {
 		return "err-pair"
 	}
-	return strings.ToLower(s[1] + "_" + s[0])
+	return strings.ToLower(s[0] + "_" + s[1])
 
 }
 

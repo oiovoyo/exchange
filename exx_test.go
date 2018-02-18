@@ -5,11 +5,11 @@ import (
 )
 
 func TestExxGetOrderBook(t *testing.T) {
-	b, e := NewExx("", "").GetOrderBook("BTC_QTUM", 50)
+	b, e := NewExx("", "").GetOrderBook("BTC_USDT", 50)
 	if e != nil {
 		t.Error(e)
 	}
-	t.Log(b)
+	t.Logf("%+v", b)
 }
 func TestExxMarkets(t *testing.T) {
 	b, e := NewExx("", "").Markets()
